@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Types
 import { OnbordaContextType } from "./types";
@@ -30,6 +31,7 @@ const OnbordaProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentTour, setCurrentTour] = useState<string | null>(null);
   const [currentStep, setCurrentStepState] = useState(0);
   const [isOnbordaVisible, setOnbordaVisible] = useState(false);
+  const navigate = useNavigate();
 
   const setCurrentStep = useCallback((step: number, delay?: number) => {
     if (delay) {
@@ -48,11 +50,14 @@ const OnbordaProvider: React.FC<{ children: React.ReactNode }> = ({
     setCurrentTour(null);
   }, []);
 
-  const startOnborda = useCallback((tourName: string) => {
+  const startOnborda = useCallback((tourName: string, initialRoute?: string) => {
     setCurrentTour(tourName);
     setCurrentStepState(0);
     setOnbordaVisible(true);
-  }, []);
+    if (initialRoute) {
+      navigate(initialRoute);
+    }
+  }, [navigate]);
 
   return (
     <OnbordaContext.Provider

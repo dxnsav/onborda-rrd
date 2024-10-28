@@ -19,6 +19,7 @@ export interface Step {
     pointerRadius?: number;
     nextRoute?: string;
     prevRoute?: string;
+    timeout?: number;
 }
 export interface Tour {
     tour: string;

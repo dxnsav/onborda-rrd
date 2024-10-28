@@ -2,12 +2,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useOnborda } from "./OnbordaContext";
 import { motion, useInView } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Portal } from "@radix-ui/react-portal";
+
+import type { Step } from "./types";
 
 // Types
 import { OnbordaProps } from "./types";
 
+/**
+ * Onborda Component
+ * A guided tour component that highlights elements on the page and provides step-by-step instructions
+ * 
+ * @param children - The content to be wrapped by the Onborda component
+ * @param steps - Array of tour configurations and their steps
+ * @param shadowRgb - RGB values for the overlay shadow (default: "0, 0, 0")
+ * @param shadowOpacity - Opacity value for the overlay shadow (default: "0.2")
+ * @param cardTransition - Animation transition settings for the card
+ * @param cardComponent - Custom card component for displaying step content
+ */
 const Onborda: React.FC<OnbordaProps> = ({
   children,
   steps,
@@ -23,45 +36,21 @@ const Onborda: React.FC<OnbordaProps> = ({
   )?.steps;
 
   const [elementToScroll, setElementToScroll] = useState<Element | null>(null);
+  const [isStepReady, setIsStepReady] = useState(false);
   const [pointerPosition, setPointerPosition] = useState<{
     x: number;
     y: number;
     width: number;
     height: number;
   } | null>(null);
+
   const currentElementRef = useRef<Element | null>(null);
   const observeRef = useRef(null); // Ref for the observer element
   const isInView = useInView(observeRef);
   const offset = 20;
 
-  // - -
-  // Route Changes
-  const router = useRouter();
-
-  // - -
-  // Initialisze
-  useEffect(() => {
-    if (isOnbordaVisible && currentTourSteps) {
-      console.log("Onborda: Current Step Changed");
-      const step = currentTourSteps[currentStep];
-      if (step) {
-        const element = document.querySelector(step.selector) as Element | null;
-        if (element) {
-          setPointerPosition(getElementPosition(element));
-          currentElementRef.current = element;
-          setElementToScroll(element);
-
-          const rect = element.getBoundingClientRect();
-          const isInViewportWithOffset =
-            rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
-
-          if (!isInView || !isInViewportWithOffset) {
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }
-      }
-    }
-  }, [currentStep, currentTourSteps, isInView, offset, isOnbordaVisible]);
+  // Navigator
+  const navigate = useNavigate();
 
   // - -
   // Helper function to get element position
@@ -77,27 +66,40 @@ const Onborda: React.FC<OnbordaProps> = ({
     };
   };
 
-  // - -
-  // Update pointerPosition when currentStep changes
+  // Initialize step with optional timeout
+  const initializeStep = async (step: Step) => {
+    setIsStepReady(false);
+
+    // Handle timeout if specified
+    if (step.timeout) {
+      await new Promise(resolve => setTimeout(resolve, step.timeout));
+    }
+
+    const element = document.querySelector(step.selector) as Element | null;
+    if (element) {
+      setPointerPosition(getElementPosition(element));
+      currentElementRef.current = element;
+      setElementToScroll(element);
+
+      const rect = element.getBoundingClientRect();
+      const isInViewportWithOffset =
+        rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
+
+      if (!isInView || !isInViewportWithOffset) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    setIsStepReady(true);
+  };
+
+  // Initialize step when current step changes
   useEffect(() => {
     if (isOnbordaVisible && currentTourSteps) {
       console.log("Onborda: Current Step Changed");
       const step = currentTourSteps[currentStep];
       if (step) {
-        const element = document.querySelector(step.selector) as Element | null;
-        if (element) {
-          setPointerPosition(getElementPosition(element));
-          currentElementRef.current = element;
-          setElementToScroll(element);
-
-          const rect = element.getBoundingClientRect();
-          const isInViewportWithOffset =
-            rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
-
-          if (!isInView || !isInViewportWithOffset) {
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }
+        initializeStep(step);
       }
     }
   }, [currentStep, currentTourSteps, isInView, offset, isOnbordaVisible]);
@@ -147,12 +149,12 @@ const Onborda: React.FC<OnbordaProps> = ({
         const route = currentTourSteps[currentStep].nextRoute;
 
         if (route) {
-          await router.push(route);
+          await navigate(route);
 
           const targetSelector = currentTourSteps[nextStepIndex].selector;
 
           // Use MutationObserver to detect when the target element is available in the DOM
-          const observer = new MutationObserver((mutations, observer) => {
+          const observer = new MutationObserver((_mutations, observer) => {
             const element = document.querySelector(targetSelector);
             if (element) {
               // Once the element is found, update the step and scroll to the element
@@ -186,12 +188,12 @@ const Onborda: React.FC<OnbordaProps> = ({
         const route = currentTourSteps[currentStep].prevRoute;
 
         if (route) {
-          await router.push(route);
+          await navigate(route);
 
           const targetSelector = currentTourSteps[prevStepIndex].selector;
 
           // Use MutationObserver to detect when the target element is available in the DOM
-          const observer = new MutationObserver((mutations, observer) => {
+          const observer = new MutationObserver((_mutations, observer) => {
             const element = document.querySelector(targetSelector);
             if (element) {
               // Once the element is found, update the step and scroll to the element
@@ -410,7 +412,7 @@ const Onborda: React.FC<OnbordaProps> = ({
         viewBox="0 0 54 54"
         data-name="onborda-arrow"
         className="absolute w-6 h-6 origin-center"
-        style={getArrowStyle(currentTourSteps?.[currentStep]?.side as any)}
+        style={getArrowStyle(currentTourSteps?.[currentStep]?.side as string)}
       >
         <path id="triangle" d="M27 27L0 0V54L27 27Z" fill="currentColor" />
       </svg>
@@ -442,11 +444,11 @@ const Onborda: React.FC<OnbordaProps> = ({
       </div>
 
       {/* Onborda Overlay Step Content */}
-      {pointerPosition && isOnbordaVisible && CardComponent && (
+      {pointerPosition && isOnbordaVisible && isStepReady && CardComponent && (
         <Portal>
           <motion.div
             data-name="onborda-overlay"
-            className="absolute inset-0 "
+            className="absolute inset-0 z-[9999]"
             initial="hidden"
             animate={isOnbordaVisible ? "visible" : "hidden"}
             variants={variants}
@@ -454,40 +456,38 @@ const Onborda: React.FC<OnbordaProps> = ({
           >
             <motion.div
               data-name="onborda-pointer"
-              className="relative z-[999]"
+              className="relative z-[9999]"
               style={{
                 boxShadow: `0 0 200vw 200vh rgba(${shadowRgb}, ${shadowOpacity})`,
-                borderRadius: `${pointerRadius}px ${pointerRadius}px ${pointerRadius}px ${pointerRadius}px`,
+                borderRadius: `${pointerRadius}px`,
               }}
               initial={
                 pointerPosition
                   ? {
-                      x: pointerPosition.x - pointerPadOffset,
-                      y: pointerPosition.y - pointerPadOffset,
-                      width: pointerPosition.width + pointerPadding,
-                      height: pointerPosition.height + pointerPadding,
-                    }
+                    x: pointerPosition.x - pointerPadOffset,
+                    y: pointerPosition.y - pointerPadOffset,
+                    width: pointerPosition.width + pointerPadding,
+                    height: pointerPosition.height + pointerPadding,
+                  }
                   : {}
               }
               animate={
                 pointerPosition
                   ? {
-                      x: pointerPosition.x - pointerPadOffset,
-                      y: pointerPosition.y - pointerPadOffset,
-                      width: pointerPosition.width + pointerPadding,
-                      height: pointerPosition.height + pointerPadding,
-                    }
+                    x: pointerPosition.x - pointerPadOffset,
+                    y: pointerPosition.y - pointerPadOffset,
+                    width: pointerPosition.width + pointerPadding,
+                    height: pointerPosition.height + pointerPadding,
+                  }
                   : {}
               }
               transition={cardTransition}
             >
               {/* Card */}
               <div
-                className="absolute flex flex-col max-w-[100%] transition-all min-w-min pointer-events-auto z-[999]"
+                className="absolute flex flex-col max-w-[100%] transition-all min-w-min pointer-events-auto z-[9999]"
                 data-name="onborda-card"
-                style={getCardStyle(
-                  currentTourSteps?.[currentStep]?.side as any
-                )}
+                style={getCardStyle(currentTourSteps?.[currentStep]?.side as string)}
               >
                 <CardComponent
                   step={currentTourSteps?.[currentStep]!}

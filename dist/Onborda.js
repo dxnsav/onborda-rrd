@@ -3,41 +3,31 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useRef } from "react";
 import { useOnborda } from "./OnbordaContext";
 import { motion, useInView } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Portal } from "@radix-ui/react-portal";
+/**
+ * Onborda Component
+ * A guided tour component that highlights elements on the page and provides step-by-step instructions
+ *
+ * @param children - The content to be wrapped by the Onborda component
+ * @param steps - Array of tour configurations and their steps
+ * @param shadowRgb - RGB values for the overlay shadow (default: "0, 0, 0")
+ * @param shadowOpacity - Opacity value for the overlay shadow (default: "0.2")
+ * @param cardTransition - Animation transition settings for the card
+ * @param cardComponent - Custom card component for displaying step content
+ */
 const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2", cardTransition = { ease: "anticipate", duration: 0.6 }, cardComponent: CardComponent, }) => {
     const { currentTour, currentStep, setCurrentStep, isOnbordaVisible } = useOnborda();
     const currentTourSteps = steps.find((tour) => tour.tour === currentTour)?.steps;
     const [elementToScroll, setElementToScroll] = useState(null);
+    const [isStepReady, setIsStepReady] = useState(false);
     const [pointerPosition, setPointerPosition] = useState(null);
     const currentElementRef = useRef(null);
     const observeRef = useRef(null); // Ref for the observer element
     const isInView = useInView(observeRef);
     const offset = 20;
-    // - -
-    // Route Changes
-    const router = useRouter();
-    // - -
-    // Initialisze
-    useEffect(() => {
-        if (isOnbordaVisible && currentTourSteps) {
-            console.log("Onborda: Current Step Changed");
-            const step = currentTourSteps[currentStep];
-            if (step) {
-                const element = document.querySelector(step.selector);
-                if (element) {
-                    setPointerPosition(getElementPosition(element));
-                    currentElementRef.current = element;
-                    setElementToScroll(element);
-                    const rect = element.getBoundingClientRect();
-                    const isInViewportWithOffset = rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
-                    if (!isInView || !isInViewportWithOffset) {
-                        element.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
-                }
-            }
-        }
-    }, [currentStep, currentTourSteps, isInView, offset, isOnbordaVisible]);
+    // Navigator
+    const navigate = useNavigate();
     // - -
     // Helper function to get element position
     const getElementPosition = (element) => {
@@ -51,24 +41,33 @@ const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2"
             height,
         };
     };
-    // - -
-    // Update pointerPosition when currentStep changes
+    // Initialize step with optional timeout
+    const initializeStep = async (step) => {
+        setIsStepReady(false);
+        // Handle timeout if specified
+        if (step.timeout) {
+            await new Promise(resolve => setTimeout(resolve, step.timeout));
+        }
+        const element = document.querySelector(step.selector);
+        if (element) {
+            setPointerPosition(getElementPosition(element));
+            currentElementRef.current = element;
+            setElementToScroll(element);
+            const rect = element.getBoundingClientRect();
+            const isInViewportWithOffset = rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
+            if (!isInView || !isInViewportWithOffset) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+        setIsStepReady(true);
+    };
+    // Initialize step when current step changes
     useEffect(() => {
         if (isOnbordaVisible && currentTourSteps) {
             console.log("Onborda: Current Step Changed");
             const step = currentTourSteps[currentStep];
             if (step) {
-                const element = document.querySelector(step.selector);
-                if (element) {
-                    setPointerPosition(getElementPosition(element));
-                    currentElementRef.current = element;
-                    setElementToScroll(element);
-                    const rect = element.getBoundingClientRect();
-                    const isInViewportWithOffset = rect.top >= -offset && rect.bottom <= window.innerHeight + offset;
-                    if (!isInView || !isInViewportWithOffset) {
-                        element.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
-                }
+                initializeStep(step);
             }
         }
     }, [currentStep, currentTourSteps, isInView, offset, isOnbordaVisible]);
@@ -113,10 +112,10 @@ const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2"
                 const nextStepIndex = currentStep + 1;
                 const route = currentTourSteps[currentStep].nextRoute;
                 if (route) {
-                    await router.push(route);
+                    await navigate(route);
                     const targetSelector = currentTourSteps[nextStepIndex].selector;
                     // Use MutationObserver to detect when the target element is available in the DOM
-                    const observer = new MutationObserver((mutations, observer) => {
+                    const observer = new MutationObserver((_mutations, observer) => {
                         const element = document.querySelector(targetSelector);
                         if (element) {
                             // Once the element is found, update the step and scroll to the element
@@ -148,10 +147,10 @@ const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2"
                 const prevStepIndex = currentStep - 1;
                 const route = currentTourSteps[currentStep].prevRoute;
                 if (route) {
-                    await router.push(route);
+                    await navigate(route);
                     const targetSelector = currentTourSteps[prevStepIndex].selector;
                     // Use MutationObserver to detect when the target element is available in the DOM
-                    const observer = new MutationObserver((mutations, observer) => {
+                    const observer = new MutationObserver((_mutations, observer) => {
                         const element = document.querySelector(targetSelector);
                         if (element) {
                             // Once the element is found, update the step and scroll to the element
@@ -371,9 +370,9 @@ const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2"
     const pointerPadding = currentTourSteps?.[currentStep]?.pointerPadding ?? 30;
     const pointerPadOffset = pointerPadding / 2;
     const pointerRadius = currentTourSteps?.[currentStep]?.pointerRadius ?? 28;
-    return (_jsxs("div", { "data-name": "onborda-wrapper", className: "relative w-full", "data-onborda": "dev", children: [_jsx("div", { "data-name": "onborda-site", className: "block w-full", children: children }), pointerPosition && isOnbordaVisible && CardComponent && (_jsx(Portal, { children: _jsx(motion.div, { "data-name": "onborda-overlay", className: "absolute inset-0 ", initial: "hidden", animate: isOnbordaVisible ? "visible" : "hidden", variants: variants, transition: { duration: 0.5 }, children: _jsx(motion.div, { "data-name": "onborda-pointer", className: "relative z-[999]", style: {
+    return (_jsxs("div", { "data-name": "onborda-wrapper", className: "relative w-full", "data-onborda": "dev", children: [_jsx("div", { "data-name": "onborda-site", className: "block w-full", children: children }), pointerPosition && isOnbordaVisible && isStepReady && CardComponent && (_jsx(Portal, { children: _jsx(motion.div, { "data-name": "onborda-overlay", className: "absolute inset-0 z-[9999]", initial: "hidden", animate: isOnbordaVisible ? "visible" : "hidden", variants: variants, transition: { duration: 0.5 }, children: _jsx(motion.div, { "data-name": "onborda-pointer", className: "relative z-[9999]", style: {
                             boxShadow: `0 0 200vw 200vh rgba(${shadowRgb}, ${shadowOpacity})`,
-                            borderRadius: `${pointerRadius}px ${pointerRadius}px ${pointerRadius}px ${pointerRadius}px`,
+                            borderRadius: `${pointerRadius}px`,
                         }, initial: pointerPosition
                             ? {
                                 x: pointerPosition.x - pointerPadOffset,
@@ -388,6 +387,6 @@ const Onborda = ({ children, steps, shadowRgb = "0, 0, 0", shadowOpacity = "0.2"
                                 width: pointerPosition.width + pointerPadding,
                                 height: pointerPosition.height + pointerPadding,
                             }
-                            : {}, transition: cardTransition, children: _jsx("div", { className: "absolute flex flex-col max-w-[100%] transition-all min-w-min pointer-events-auto z-[999]", "data-name": "onborda-card", style: getCardStyle(currentTourSteps?.[currentStep]?.side), children: _jsx(CardComponent, { step: currentTourSteps?.[currentStep], currentStep: currentStep, totalSteps: currentTourSteps?.length ?? 0, nextStep: nextStep, prevStep: prevStep, arrow: _jsx(CardArrow, {}) }) }) }) }) }))] }));
+                            : {}, transition: cardTransition, children: _jsx("div", { className: "absolute flex flex-col max-w-[100%] transition-all min-w-min pointer-events-auto z-[9999]", "data-name": "onborda-card", style: getCardStyle(currentTourSteps?.[currentStep]?.side), children: _jsx(CardComponent, { step: currentTourSteps?.[currentStep], currentStep: currentStep, totalSteps: currentTourSteps?.length ?? 0, nextStep: nextStep, prevStep: prevStep, arrow: _jsx(CardArrow, {}) }) }) }) }) }))] }));
 };
 export default Onborda;

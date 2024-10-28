@@ -1,6 +1,7 @@
 "use client";
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 // Example Hooks Usage:
 // const { setCurrentStep, closeOnborda, startOnborda } = useOnborda();
 // // To trigger a specific step
@@ -20,6 +21,7 @@ const OnbordaProvider = ({ children, }) => {
     const [currentTour, setCurrentTour] = useState(null);
     const [currentStep, setCurrentStepState] = useState(0);
     const [isOnbordaVisible, setOnbordaVisible] = useState(false);
+    const navigate = useNavigate();
     const setCurrentStep = useCallback((step, delay) => {
         if (delay) {
             setTimeout(() => {
@@ -36,11 +38,14 @@ const OnbordaProvider = ({ children, }) => {
         setOnbordaVisible(false);
         setCurrentTour(null);
     }, []);
-    const startOnborda = useCallback((tourName) => {
+    const startOnborda = useCallback((tourName, initialRoute) => {
         setCurrentTour(tourName);
         setCurrentStepState(0);
         setOnbordaVisible(true);
-    }, []);
+        if (initialRoute) {
+            navigate(initialRoute);
+        }
+    }, [navigate]);
     return (_jsx(OnbordaContext.Provider, { value: {
             currentTour,
             currentStep,

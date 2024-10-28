@@ -25,6 +25,8 @@ export interface Step {
   // Routing
   nextRoute?: string;
   prevRoute?: string;
+  // Timeout of animation start
+  timeout?: number;
 }
 
 // Tour

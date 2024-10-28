@@ -1,13 +1,14 @@
 {
-  "name": "onborda",
+  "name": "onborda-rrd",
+  "type": "module",
   "version": "1.2.4",
-  "description": "The ultimate product tour library for Next.js",
+  "description": "The ultimate product tour library for react-router-dom",
   "license": "MIT",
   "author": "Matt Litherland",
-  "homepage": "https://github.com/uixmat/onborda#readme",
+  "homepage": "https://github.com/dxnsav/onborda-rrd#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uixmat/onborda.git"
+    "url": "git+https://github.com/dxnsav/onborda-rrd.git"
   },
   "keywords": [
     "react-onboarding",
@@ -28,14 +29,15 @@
     "start": "npm run build && node dist/index.js"
   },
   "peerDependencies": {
+    "@radix-ui/react-portal": ">=1.1.1",
     "framer-motion": ">=11",
-    "next": ">=13",
     "react": ">=18",
     "react-dom": ">=18",
-    "@radix-ui/react-portal": ">=1.1.1"
+    "react-router-dom": ">=6"
   },
   "devDependencies": {
     "@types/react": "^18.2.63",
+    "react-router-dom": "^6.27.0",
     "typescript": "^5.3.3"
   }
 }
