@@ -1,4 +1,4 @@
-# Onborda-RRD - React Router DOm onboarding flow
+# Onborda-RRD - React Router DOM onboarding flow
 Onborda is a lightweight onboarding flow that utilises [framer-motion](https://www.framer.com/motion/) for animations and [tailwindcss](https://tailwindcss.com/) for styling. Fully customisable pointers (tooltips) that can easily be used with [shadcn/ui](https://ui.shadcn.com/) for modern web applications.
 
 - **Demo - [onborda.vercel.app](https://onborda.vercel.app)**
