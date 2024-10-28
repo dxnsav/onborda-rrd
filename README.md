@@ -1,8 +1,10 @@
-# Onborda - Next.js onboarding flow
+# Onborda-RRD - React Router DOm onboarding flow
 Onborda is a lightweight onboarding flow that utilises [framer-motion](https://www.framer.com/motion/) for animations and [tailwindcss](https://tailwindcss.com/) for styling. Fully customisable pointers (tooltips) that can easily be used with [shadcn/ui](https://ui.shadcn.com/) for modern web applications.
 
 - **Demo - [onborda.vercel.app](https://onborda.vercel.app)**
 - **[Demo repository](https://github.com/uixmat/onborda-demo)**
+
+> **Note:** The demo currently shows the Next.js version of Onborda. React Router DOM implementation demo coming soon.
 
 
 ## Getting started
@@ -15,16 +17,29 @@ pnpm add onborda
 yarn add onborda
 ```
 
-### Global `layout.tsx`
+### Setup in your App
+Onborda must be placed inside React Router context for navigation features to work:
+
 ```tsx
-<OnbordaProvider>
-  <Onborda steps={steps}>
-    {children}
-  </Onborda>
- </OnbordaProvider>
+import { BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Onborda, OnbordaProvider } from 'onborda';
+
+const App = () => {
+  return (
+    <Router>
+      <OnbordaProvider>
+        <Onborda steps={steps}>
+          <Routes />
+        </Onborda>
+      </OnbordaProvider>
+    </Router>
+  );
+};
 ```
 
-### Components & `page.tsx`
+> **Important:** Onborda requires React Router DOM for navigation features. Make sure to wrap it inside Router context.
+
+### Components
 Target anything in your app using the elements `id` attribute.
 ```tsx
 <div id="onborda-step1">Onboard Step</div>
@@ -38,7 +53,7 @@ Tailwind CSS will need to scan the node module in order to include the classes u
 ```ts
 const config: Config = {
   content: [
-    './node_modules/onborda/dist/**/*.{js,ts,jsx,tsx}' // Add this
+    './node_modules/onborda-rrd/dist/**/*.{js,ts,jsx,tsx}' // Add this
   ]
 }
 ```
@@ -57,7 +72,7 @@ If you require greater control over the card design or simply wish to create a t
 
 ```tsx
 "use client"
-import type { CardComponentProps } from "onborda";
+import type { CardComponentProps } from "onborda-rrd";
 
 export const CustomCard = ({
   step,
@@ -81,11 +96,11 @@ export const CustomCard = ({
 ```
 
 ### Steps object
-Steps have changed since Onborda v1.2.3 and now fully supports multiple "tours" so you have the option to create multple product tours should you need to! The original Step format remains but with some additional content as shown in the example below!
+Onborda-RRD supports multiple "tours" so you can create multiple product tours for different features or user journeys! The format is shown in the example below:
 
 ```tsx
 {
-  tour: "firstyour",
+  tour: "firsttour",
   steps: [
     Step
   ],
@@ -104,14 +119,13 @@ Steps have changed since Onborda v1.2.3 and now fully supports multiple "tours" 
 | `title`          | `string`                        | The title of your step                     |
 | `content`        | `React.ReactNode`               | The main content or body of the step.                                                 |
 | `selector`       | `string`                        | A string used to target an `id` that this step refers to.            |
-| `side`           | `"top"`, `"bottom"`, `"left"`, `"right"` | Optional. Determines where the tooltip should appear relative to the selector.          |
+| `side`           | `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-left"`, `"top-right"`, `"bottom-left"`, `"bottom-right"`, `"left-top"`, `"left-bottom"`, `"right-top"`, `"right-bottom"` | Optional. Determines where the tooltip should appear relative to the selector.          |
 | `showControls`   | `boolean`                       | Optional. Determines whether control buttons (next, prev) should be shown if using the default card.           |
 | `pointerPadding` | `number`                        | Optional. The padding around the pointer (keyhole) highlighting the target element.             |
 | `pointerRadius`  | `number`                        | Optional. The border-radius of the pointer (keyhole) highlighting the target element.           |
-| `nextRoute`      | `string`                        | Optional. The route to navigate to using `next/navigation` when moving to the next step.                      |
-| `prevRoute`      | `string`                        | Optional. The route to navigate to using `next/navigation` when moving to the previous step.                  |
-
-> **Note** _Both `nextRoute` and `prevRoute` have a `500`ms delay before setting the next step, a function will be added soon to control the delay in case your application loads slower than this._
+| `nextRoute`      | `string`                        | Optional. The route to navigate to using React Router when moving to the next step.                      |
+| `prevRoute`      | `string`                        | Optional. The route to navigate to using React Router when moving to the previous step.                  |
+| `timeout`        | `number`                        | Optional. Delay (in ms) before starting the animation, useful for elements that need time to render (e.g., drawers) |
 
 ### Example `steps`
 
@@ -129,7 +143,8 @@ Steps have changed since Onborda v1.2.3 and now fully supports multiple "tours" 
       pointerPadding: 10,
       pointerRadius: 10,
       nextRoute: "/foo",
-      prevRoute: "/bar"
+      prevRoute: "/bar",
+      timeout: 300,
     }
     ...
   ],
@@ -154,7 +169,7 @@ Steps have changed since Onborda v1.2.3 and now fully supports multiple "tours" 
 | Property        | Type                  | Description                                                                           |
 |-----------------|-----------------------|---------------------------------------------------------------------------------------|
 | `children`      | `React.ReactNode`     | Your website or application content.                                                  |
-| `steps`         | `Array[]`             | An array of `Step` objects defining each step of the onboarding process.              |
+| `steps`         | `Tour[]`              | An array of `Tour` objects, each containing an array of steps defining the onboarding process. |
 | `showOnborda`   | `boolean`             | Optional. Controls the visibility of the onboarding overlay, eg. if the user is a first time visitor. Defaults to `false`.                         |
 | `shadowRgb`     | `string`              | Optional. The RGB values for the shadow color surrounding the target area. Defaults to black `"0,0,0"`.      |
 | `shadowOpacity` | `string`              | Optional. The opacity value for the shadow surrounding the target area. Defaults to `"0.2"`          |
