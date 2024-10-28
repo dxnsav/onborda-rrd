@@ -1,17 +1,28 @@
 {
   "name": "onborda-rrd",
   "type": "module",
-  "version": "1.2.4",
-  "description": "The ultimate product tour library for react-router-dom",
+  "version": "1.0.0",
+  "description": "The ultimate product tour library for react-router-dom based on onborda (fork of https://github.com/uixmat/onborda)",
   "license": "MIT",
   "author": "Matt Litherland",
+  "contributors": [
+    {
+      "name": "Denys Savin",
+      "url": "https://github.com/dxnsav"
+    }
+  ],
   "homepage": "https://github.com/dxnsav/onborda-rrd#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dxnsav/onborda-rrd.git"
   },
+  "bugs": {
+    "url": "https://github.com/dxnsav/onborda-rrd/issues"
+  },
+  "fork": "https://github.com/uixmat/onborda",
   "keywords": [
     "react-onboarding",
+    "react-router-dom",
     "react-onborda",
     "onboarding",
     "onborda",
