@@ -10,11 +10,11 @@ Onborda is a lightweight onboarding flow that utilises [framer-motion](https://w
 ## Getting started
 ```bash
 # npm
-npm i onborda
+npm i onborda-rrd
 # pnpm
-pnpm add onborda
+pnpm add onborda-rrd
 # yarn
-yarn add onborda
+yarn add onborda-rrd
 ```
 
 ### Setup in your App
@@ -22,7 +22,7 @@ Onborda must be placed inside React Router context for navigation features to wo
 
 ```tsx
 import { BrowserRouter as Router, Routes } from 'react-router-dom';
-import { Onborda, OnbordaProvider } from 'onborda';
+import { Onborda, OnbordaProvider } from 'onborda-rrd';
 
 const App = () => {
   return (
@@ -130,38 +130,44 @@ Onborda-RRD supports multiple "tours" so you can create multiple product tours f
 ### Example `steps`
 
 ```tsx
-{
-  tour: "firsttour",
-  steps: [
-    {
-      icon: <>👋</>,
-      title: "Tour 1, Step 1",
-      content: <>First tour, first step</>,
-      selector: "#tour1-step1",
-      side: "top",
-      showControls: true,
-      pointerPadding: 10,
-      pointerRadius: 10,
-      nextRoute: "/foo",
-      prevRoute: "/bar",
-      timeout: 300,
-    }
-    ...
-  ],
-  tour: "secondtour",
-  steps: [
-    icon: <>👋👋</>,
-      title: "Second tour, Step 1",
-      content: <>Second tour, first step!</>,
-      selector: "#onborda-step1",
-      side: "top",
-      showControls: true,
-      pointerPadding: 10,
-      pointerRadius: 10,
-      nextRoute: "/foo",
-      prevRoute: "/bar"
-  ]
-}
+[
+  {
+    tour: "firsttour",
+    steps: [
+      {
+        icon: <>👋</>,
+        title: "Tour 1, Step 1",
+        content: <>First tour, first step</>,
+        selector: "#tour1-step1",
+        side: "top",
+        showControls: true,
+        pointerPadding: 10,
+        pointerRadius: 10,
+        nextRoute: "/foo",
+        prevRoute: "/bar",
+        timeout: 300,
+      }
+      // ...
+    ]
+  },
+  {
+    tour: "secondtour",
+    steps: [
+      {
+        icon: <>👋👋</>,
+        title: "Second tour, Step 1",
+        content: <>Second tour, first step!</>,
+        selector: "#onborda-step1",
+        side: "top",
+        showControls: true,
+        pointerPadding: 10,
+        pointerRadius: 10,
+        nextRoute: "/foo",
+        prevRoute: "/bar"
+      }
+    ]
+  }
+]
 ```
 
 ### Onborda Props
@@ -189,3 +195,27 @@ Onborda-RRD supports multiple "tours" so you can create multiple product tours f
   {children}
 </Onborda>
 ```
+
+## 🚀 Roadmap
+
+### Documentation & Examples
+- [ ] Provide comprehensive documentation for React Router DOM implementation
+- [ ] Create and deploy React Router DOM demo site
+- [ ] Add more examples of custom card implementations
+
+### Features & Improvements
+- [ ] Add intelligent dropdown positioning
+  - Prevent tooltips from rendering outside viewport
+  - Auto-adjust position based on available space
+- [ ] Implement smart timeout calculation
+  - Automatically detect animation duration for more consistent transitions
+  - Improve synchronization with animated elements
+  
+### Mobile Experience
+- [ ] Enhance mobile viewport handling
+  - Fix positioning issues on smaller screens
+  - Improve touch interactions
+  - Optimize layout for mobile devices
+
+### Want to contribute?
+We welcome contributions! Feel free to submit a PR or open an issue on GitHub to discuss new features or improvements.
